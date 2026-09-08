@@ -1,7 +1,7 @@
 /* 公开项目笔记：仅包含经源码核对的技术介绍，不包含业务数据和凭证。 */
 window.projectStories = [
   {
-    id: 'silver-guardian', title: '银龄守护：把 AI 陪伴接入家庭照护', category: '软硬件开发', tone: 'sage', featured: true,
+    id: 'silver-guardian', title: '银龄守护 · 鸿蒙版：多端协同的家庭照护平台', platform: 'HarmonyOS', category: '软硬件开发', tone: 'sage', featured: true,
     tech: ['HarmonyOS / ArkTS', 'Spring Boot', 'FastAPI', 'Vue 3', 'PostgreSQL', 'Agent Tools'],
     description: '从老人、家属到运营后台，连接提醒、家庭关系、主动关怀与受控的 Agent 工具调用。',
     kicker: 'CARE × AGENT', status: '增强版 MVP · 持续完善',
@@ -84,5 +84,15 @@ window.projectStories = [
     tests: [['数据层', '只读源码核对', '核对 SQLite 表结构、WAL 配置及账号关联外键，未连接业务数据库。'], ['自动化测试', '未发现独立测试套件', '本次在提供的压缩包内未定位到独立测试套件，不能宣称测试通过。'], ['后续建议', '建议用例，尚未执行', '优先验证授权过期刷新、多账号隔离、重复素材、平台限流与进程重启恢复。'], ['真实投放', '本次未执行', '效果、ROI 与生产稳定性需要真实平台数据支持，本文不提供虚构指标。']],
     reflection: '业务工具的进步，常常体现在不起眼的地方：账号没有串、失败留下记录、重启后知道上次做到哪。下一步我会优先补齐可重复运行的测试，让这些判断从“读起来合理”变成“有证据证明”。',
     evidence: ['app.py', 'db.py', 'gallery_uploader.py']
+  }
+  ,{
+    id: 'elderly-android', title: '银龄守护 · 安卓版：语音交互与移动端照护助手', platform: 'Android', category: '软硬件开发', tone: 'apricot', featured: false,
+    tech: ['Android / Kotlin', 'Jetpack Compose', 'FastAPI', 'SQLite', '讯飞语音', 'DeepSeek', 'WebSocket'],
+    description: '以 Android 手机为入口，连接语音对话、健康记录、日常提醒、家属查看与设备异常上报；独立于鸿蒙版实现。',
+    kicker: 'ANDROID × DAILY CARE', status: 'Android 独立工程 · 产品实践',
+    architecture: [['Android 客户端', 'Kotlin + Jetpack Compose / Material 3，ViewModel 管理页面状态。'], ['手机能力', '讯飞语音接入、提醒与通知、步数、位置和传感器服务。'], ['后端与模型', 'FastAPI 提供业务接口，DeepSeek 处理对话和建议；WebSocket 支撑位置请求。'], ['数据保存', '手机侧 SharedPreferences 保存本地记录，服务端 SQLite 保存同步与产品数据。']],
+    flow: ['老人录入 / 提出需求', '手机本地处理', 'API 或 WebSocket 交互', '服务端保存 / 模型处理', '老人或家属查看结果'],
+    flowNote: '安卓版以手机能力与 Python 后端协作为主，不使用鸿蒙版的 ArkTS、Spring Boot 和家庭成员数据模型。',
+    evidence: ['android/app/build.gradle.kts', 'android/app/src/main/java/com/example/elderlycare/data/repository/HealthLocalRepository.kt', 'android/app/src/main/java/com/example/elderlycare/FallDetectionService.kt', 'backend/main_api.py', 'backend/product_db.py', 'backend/elder_location_cache.py', 'android/app/src/test/java/com/example/elderlycare/ExampleUnitTest.kt']
   }
 ];
