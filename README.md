@@ -1,41 +1,15 @@
-# yuecong 个人博客 / 项目作品集
+# yuecong 个人博客
 
-这是一个纯 HTML + CSS + JavaScript 的奶油风多页面个人网站，可以直接部署到 GitHub Pages。
+静态 HTML / CSS / JavaScript 网站，部署于 GitHub Pages。
 
-## 页面
+## 项目文章
 
-- `index.html`：首页、个人简介预览、精选项目、经历时间线
-- `about.html`：完整个人介绍、价值观、技能、经历
-- `projects.html`：项目展示、搜索、分类筛选、详情弹窗、添加项目
-- `contact.html`：邮箱、GitHub、联系表单、常见问题
+五篇真实项目文章的数据集中在 `assets/projects-data.js`，阅读页为 `project.html?id=项目ID`，由 `assets/story.js` 渲染。修改文章后提交文件到 GitHub，所有访客即可看到。项目列表只读，不读取旧浏览器项目缓存，也没有公开添加入口。
 
-## 上传到 GitHub Pages
+文章包含背景、架构、技术栈、流程图、局部 ER 图、测试依据和复盘。测试代码存在不等于本次执行通过；文中已区分。业务源码、凭证、数据库和客户素材不在网站内。
 
-把这四个文件和 `assets` 文件夹中的两个文件上传到仓库根目录：
+## 文件更新
 
-```text
-index.html
-about.html
-projects.html
-contact.html
-assets/style.css
-assets/script.js
-```
+将本目录的内容放在仓库根目录，保留 assets 子目录。新增项目文章时更新 projects-data.js。主题偏好仍保存在访客自己的浏览器中。
 
-然后打开 `https://huangyuecong.github.io`。
-
-## 修改个人资料
-
-在 HTML 文件中搜索并替换：
-
-- `yuecong`
-- `yuecong@example.com`
-- `https://github.com/huangyuecong`
-
-在 `assets/script.js` 的 `defaultProjects` 数组中修改项目名称、介绍、技术标签和链接。
-
-## 关于“添加项目”
-
-项目页里的“添加项目”可以在当前浏览器中添加项目，并用 `localStorage` 保存；它不会把文件上传到 GitHub 服务器，也不会自动让其他访客看到。要永久公开项目，请把新项目写进 `defaultProjects`，再提交 `assets/script.js` 到 GitHub。
-
-联系表单使用 `mailto:` 打开访客的邮件客户端，不需要后端服务。正式使用前，请把 `yuecong@example.com` 改成你的真实邮箱。
+联系邮箱：435783336@qq.com。留言表单通过邮件客户端发送，不是服务器留言系统。
