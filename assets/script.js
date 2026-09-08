@@ -141,7 +141,7 @@ function setupContact() {
   const form = document.getElementById("contactForm");
   if (form) form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const data = new FormData(form); const email = form.dataset.contactEmail || "yuecong@example.com";
+    const data = new FormData(form); const email = form.dataset.contactEmail || "435783336@qq.com";
     const subject = encodeURIComponent(`来自 ${data.get("name")} 的留言`); const body = encodeURIComponent(`${data.get("message")}\n\n回复邮箱：${data.get("email")}`);
     document.getElementById("formStatus").textContent = "正在打开邮件客户端……";
     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
