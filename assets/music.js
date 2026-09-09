@@ -5,7 +5,8 @@
   const icons={play:'<path d="m8 5 11 7-11 7z"/>',pause:'<path d="M7 5h3v14H7zM14 5h3v14h-3z"/>',prev:'<path d="M5 5h2v14H5zm14 0L8 12l11 7z"/>',next:'<path d="M17 5h2v14h-2zM5 5l11 7L5 19z"/>',volume:'<path d="m4 9 4 0 5-4v14l-5-4H4z"/><path d="M16 8q6 4 0 8" fill="none" stroke="currentColor" stroke-width="2"/>',list:'<path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="2"/>',repeat:'<path d="M5 8h13l-3-3m3 11H5l3 3M4 8v5m16-2v5" fill="none" stroke="currentColor" stroke-width="2"/>'};
   const svg=name=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+icons[name]+'</svg>';
   const tracks=[{title:'奶油午后',artist:'yuecong · 合成轻音乐',seed:0,duration:61.44},{title:'山间来信',artist:'yuecong · 合成轻音乐',seed:1,duration:61.44}];
-  const playlistSource='https://api.injahow.cn/meting/?server=netease&type=playlist&id=2619366284';
+  const playlistSource='https://api.injahow.cn/meting/?server=netease&type=playlist&id=7289415499';
+  const onlineLimit=9999; let playMode='order'; let analyser,raf;
   let onlineReady=false,onlineLoading=true;
   const card=document.createElement('section');card.className='music-card';card.setAttribute('aria-label','音乐播放器');
   card.innerHTML='<div class="music-heading"><strong>音乐</strong><span class="music-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div><div class="music-now"><div class="music-disc" aria-hidden="true"><i></i></div><div class="music-info"><strong id="trackName"></strong><small id="trackArtist"></small><div class="music-time"><span id="trackTime">0:00 / 1:01</span></div></div></div><label class="sr-only" for="musicSeek">播放进度</label><input id="musicSeek" class="music-range" type="range" min="0" max="61.44" step="0.1" value="0"><div class="music-controls"><button type="button" data-music="repeat" aria-label="切换单曲循环" aria-pressed="false">'+svg('repeat')+'</button><button type="button" data-music="prev" aria-label="上一首">'+svg('prev')+'</button><button type="button" data-music="play" class="music-play" aria-label="播放">'+svg('play')+'</button><button type="button" data-music="next" aria-label="下一首">'+svg('next')+'</button><button type="button" data-music="list" aria-label="展开播放列表" aria-expanded="false" aria-controls="musicPlaylist">'+svg('list')+'</button></div><div class="music-volume"><button type="button" data-music="mute" aria-label="静音" aria-pressed="false">'+svg('volume')+'</button><label class="sr-only" for="musicVolume">音量</label><input id="musicVolume" class="music-range" type="range" min="0" max="100" value="35"><span id="volumeLabel">35%</span></div><div id="musicPlaylist" class="music-playlist" hidden></div><div class="music-foot"><span id="musicStatus" role="status">点击播放 · 轻音乐</span><label class="music-import" title="仅在本机试听，不会上传">选歌<input type="file" accept="audio/*" id="musicFile" aria-label="选择本机音乐"></label></div>';
@@ -20,20 +21,21 @@
       const response=await fetch(playlistSource,{mode:'cors'}); if(!response.ok) throw new Error('playlist');
       const list=await response.json();
       if(!Array.isArray(list)||!list.length) throw new Error('empty');
-      tracks.push(...list.map(item=>({title:item.name||'未命名歌曲',artist:item.artist||'网易云音乐',url:item.url,pic:item.pic,duration:0,online:true})));
-      onlineReady=true; status('网易云歌单 · '+list.length+' 首'); playlist(); paint();
+      tracks.push(...list.slice(0,onlineLimit).map(item=>({title:item.name||'未命名歌曲',artist:item.artist||'网易云音乐',url:item.url,pic:item.pic,duration:0,online:true})));
+      onlineReady=true; status('网易云歌单 · 精选 '+Math.min(list.length,onlineLimit)+' 首'); playlist(); paint();
     }catch(error){status('网易云歌单暂时不可用 · 可试听本机音乐');}
     onlineLoading=false;
   }
-  loadOnlinePlaylist();
   const $=selector=>card.querySelector(selector);
   let saved={};try{saved=JSON.parse(localStorage.getItem('yuecong-music')||'{}')||{};}catch{}
   let selected=Number.isInteger(saved.track)&&saved.track>=0?saved.track:0;
   let pendingTime=Math.max(0,Number(saved.time)||0),loaded=-1,lastSave=0,sequence=0;
   audio.volume=Number.isFinite(saved.volume)?Math.max(0,Math.min(1,saved.volume)):.35;
+  try{playMode=localStorage.getItem('yuecong-play-mode')||'order';}catch{}
   audio.loop=saved.loop===true;
   const format=seconds=>{const n=Math.max(0,Math.floor(Number(seconds)||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');};
   const status=text=>$('#musicStatus').textContent=text;
+  loadOnlinePlaylist();
   const persist=()=>{try{localStorage.setItem('yuecong-music',JSON.stringify({track:selected<2?selected:0,time:selected<2?(loaded===selected?audio.currentTime:pendingTime):0,volume:audio.volume,loop:audio.loop}));}catch{}};
   function paint(){
     const track=tracks[selected]||tracks[0];
@@ -46,8 +48,8 @@
     const playing=!audio.paused;
     card.classList.toggle('is-playing',playing);
     $('[data-music="play"]').innerHTML=svg(playing?'pause':'play');$('[data-music="play"]').setAttribute('aria-label',playing?'暂停':'播放');
-    $('[data-music="repeat"]').setAttribute('aria-pressed',String(audio.loop));
-    $('[data-music="repeat"]').title=audio.loop?'单曲循环':'顺序播放';
+    $('[data-music="mode"]').textContent=playMode==='order'?'↻':playMode==='random'?'⤨':'↻¹';
+    $('[data-music="mode"]').title=playMode==='order'?'顺序播放':playMode==='random'?'随机播放':'单曲循环';
     $('[data-music="mute"]').setAttribute('aria-pressed',String(audio.muted));$('[data-music="mute"]').setAttribute('aria-label',audio.muted?'取消静音':'静音');
     $('#musicVolume').value=audio.volume*100;$('#musicVolume').style.setProperty('--range-fill',audio.volume*100+'%');
     $('#volumeLabel').textContent=audio.muted?'静音':Math.round(audio.volume*100)+'%';
@@ -102,13 +104,15 @@
     const wasPlaying=!audio.paused;sequence++;audio.pause();selected=(index+tracks.length)%tracks.length;loaded=-1;pendingTime=0;
     audio.removeAttribute('src');audio.load();status(selected<2?'点击播放 · 轻音乐':tracks[selected]?.online?'网易云歌单 · 点击播放':'本机试听 · 不会上传');paint();persist();if(wasPlaying)play();
   }
+  function chooseNext(){if(playMode==='one')return selected;if(playMode==='random')return Math.floor(Math.random()*tracks.length);return (selected+1)%tracks.length;}
+  function setupAnalyser(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const node=ctx.createMediaElementSource(audio);analyser=ctx.createAnalyser();analyser.fftSize=64;node.connect(analyser);analyser.connect(ctx.destination);const data=new Uint8Array(analyser.frequencyBinCount);const tick=()=>{if(!analyser)return;analyser.getByteFrequencyData(data);const level=Math.min(1,data.reduce((a,b)=>a+b,0)/data.length/180);card.style.setProperty('--music-level',level);raf=requestAnimationFrame(tick)};tick();}catch{}}
   card.addEventListener('click',event=>{
     const track=event.target.closest('[data-track]');if(track){select(Number(track.dataset.track));return;}
     const action=event.target.closest('[data-music]')?.dataset.music;
-    if(action==='play'){if(audio.paused)play();else{sequence++;audio.pause();status('已暂停');persist();}}
+    if(action==='play'){if(audio.paused){setupAnalyser();play();}else{sequence++;audio.pause();status('已暂停');persist();}}
     if(action==='prev')select(selected-1);
-    if(action==='next')select(selected+1);
-    if(action==='repeat'){audio.loop=!audio.loop;persist();}
+    if(action==='next')select(chooseNext());
+    if(action==='mode'){playMode=playMode==='order'?'random':playMode==='random'?'one':'order';audio.loop=playMode==='one';try{localStorage.setItem('yuecong-play-mode',playMode);}catch{}status(playMode==='order'?'顺序播放':playMode==='random'?'随机播放':'单曲循环');}
     if(action==='mute'){audio.muted=!audio.muted;}
     if(action==='list'){const list=$('#musicPlaylist');list.hidden=!list.hidden;$('[data-music="list"]').setAttribute('aria-expanded',String(!list.hidden));}
     paint();
@@ -124,8 +128,9 @@
   audio.addEventListener('loadedmetadata',()=>{audio.currentTime=Math.min(pendingTime,Math.max(0,audio.duration-.05));tracks[selected].duration=audio.duration;paint();});
   audio.addEventListener('timeupdate',()=>{if(document.hidden)return;paint();if(Date.now()-lastSave>1500){persist();lastSave=Date.now();}});
   ['play','pause','volumechange'].forEach(type=>audio.addEventListener(type,paint));
-  audio.addEventListener('ended',()=>{if(!audio.loop&&selected<tracks.length-1){select(selected+1);play();}else{pendingTime=0;audio.currentTime=0;status('播放结束');paint();persist();}});
+  audio.addEventListener('ended',()=>{if(playMode!=='one'){select(chooseNext());play();}else{pendingTime=0;audio.currentTime=0;status('单曲循环');paint();persist();}});
   audio.addEventListener('error',()=>{if(audio.hasAttribute('src'))status('音频不可用，请选择其他曲目');});
   window.addEventListener('pagehide',persist);
   playlist();paint();
+  card.dataset.playMode=playMode;
 })();

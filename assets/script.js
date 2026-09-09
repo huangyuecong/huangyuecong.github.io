@@ -69,6 +69,8 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
+function setupLanguage() { const map={'首页':'Home','关于我':'About','项目':'Projects','经验分享':'Notes','联系':'Contact','深色模式':'Dark mode','浅色模式':'Light mode','我的项目':'Projects','经验分享':'Field notes','音乐':'Music','收藏':'Save','阅读全文':'Read more'}; let english=false; const swap=()=>{document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&el.textContent.trim()&&map[el.textContent.trim()])el.textContent=english?map[el.textContent.trim()]:Object.keys(map).find(k=>map[k]===el.textContent.trim())||el.textContent;});document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.textContent=english?'中':'EN');};document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.addEventListener('click',()=>{english=!english;swap();})); }
+
 function setupTheme() {
   const root = document.documentElement;
   let saved; try { saved = localStorage.getItem(themeKey); } catch {}
@@ -109,6 +111,7 @@ function setupScrollHelpers() {
   document.querySelectorAll("[data-year]").forEach((item) => item.textContent = new Date().getFullYear());
 }
 
+setupLanguage();
 setupTheme();
 setupNavigation();
 setupFeaturedProjects();
