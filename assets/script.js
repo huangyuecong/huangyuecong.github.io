@@ -7,6 +7,7 @@ const safeLink = (value) => /^(https?:\/\/|mailto:)/i.test(String(value || "")) 
 const getProjects = () => [...defaultProjects, ...(window.fieldNotes || [])];
 
 function renderProjectCard(project) {
+  if(project.category === "经验分享") return `<article class="project-card editorial-card"><div class="project-info"><p class="eyebrow">工程手记</p><h3><a href="notes.html?article=${encodeURIComponent(project.id)}">${escapeHtml(project.title)}</a></h3><p>${escapeHtml(project.description)}</p><a class="small-button" href="notes.html?article=${encodeURIComponent(project.id)}">阅读分享 →</a></div></article>`;
   const image = `<div class="project-cover"><span>${escapeHtml(project.kicker)}</span><strong>${escapeHtml(project.title.split("：")[0])}</strong><small>项目笔记 / yuecong</small></div>`;
   const tags = (project.tech || []).slice(0, 4).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
   const link = project.category === "经验分享" ? `notes.html?article=${encodeURIComponent(project.id)}` : `project.html?id=${encodeURIComponent(project.id)}`;
