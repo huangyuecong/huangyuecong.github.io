@@ -4,23 +4,24 @@ const themeKey = "yuecong-theme";
 
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 const safeLink = (value) => /^(https?:\/\/|mailto:)/i.test(String(value || "")) ? String(value) : "#";
-const getProjects = () => defaultProjects;
+const getProjects = () => [...defaultProjects, ...(window.fieldNotes || [])];
 
 function renderProjectCard(project) {
   const image = `<div class="project-cover"><span>${escapeHtml(project.kicker)}</span><strong>${escapeHtml(project.title.split("：")[0])}</strong><small>项目笔记 / yuecong</small></div>`;
   const tags = (project.tech || []).slice(0, 4).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
-  const link = `project.html?id=${encodeURIComponent(project.id)}`;
+  const link = project.category === "经验分享" ? `notes.html?article=${encodeURIComponent(project.id)}` : `project.html?id=${encodeURIComponent(project.id)}`;
   return `<article class="project-card">
     <div class="project-thumb thumb-${escapeHtml(project.tone || "sage")}">${image}</div>
     <div class="project-info"><div class="project-topline"><span class="project-category">${escapeHtml(project.category || "项目")}</span><span class="card-kicker">WORK</span></div>
       <h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.description)}</p><div class="tag-list">${tags}</div>
-      <div class="project-actions"><a class="small-button primary" href="${link}">阅读全文 <span>→</span></a><span class="project-reading">架构 · 流程 · 测试</span></div>
+      <div class="project-actions"><a class="small-button primary" href="${link}">阅读全文 <span>→</span></a><button type="button" class="bookmark-button" data-bookmark="${escapeHtml(project.id)}" aria-pressed="false">收藏</button></div>
     </div></article>`;
 }
 
 function renderProjectList(target, projects) {
   if (!target) return;
   target.innerHTML = projects.map(renderProjectCard).join("");
+  document.dispatchEvent(new Event("site:cards-rendered"));
   const empty = document.getElementById("emptyProjects");
   if (empty) empty.hidden = projects.length !== 0;
 }

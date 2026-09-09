@@ -21,6 +21,7 @@
     ['scenario','一个完整的使用场景'],
     ['architecture','系统架构与技术方案'],
     ['decisions','关键工程取舍'],
+    ['implementation','实现细节与技术核对'],
     ['data-model','数据模型与关联关系'],
     ['testing','测试策略与验收标准'],
     ['delivery','交付范围与实施边界'],
@@ -47,6 +48,8 @@
   const scenario='<div class="scenario-lead"><h3>'+esc(detail.scenario.title)+'</h3><p>'+esc(detail.scenario.intro)+'</p></div><ol class="journey-steps">'+detail.scenario.steps.map(([title,copy],i)=>'<li><span class="journey-number">'+(i+1)+'</span><div><h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p></div></li>').join('')+'</ol><p class="story-result">'+esc(detail.scenario.result)+'</p><figure class="diagram-figure"><div class="diagram-label">BUSINESS FLOW</div><ol class="flow-diagram" aria-label="业务处理主流程">'+project.flow.map(step=>'<li>'+esc(step)+'</li>').join('')+'</ol><figcaption>'+esc(project.flowNote)+'</figcaption></figure>';
   const architecture='<div class="tag-list">'+project.tech.map(tag=>'<span class="tag">'+esc(tag)+'</span>').join('')+'</div><figure class="diagram-figure architecture-figure"><div class="diagram-label">SYSTEM RESPONSIBILITIES</div><ol class="architecture-layers" aria-label="系统职责分层图">'+project.architecture.map(([title,copy],i)=>'<li><span class="layer-number">L'+(i+1)+'</span><div><h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p></div></li>').join('')+'</ol><figcaption>按职责展示系统的主要组成与衔接，箭头表达阅读顺序，不表示每项功能都必须依次调用全部模块。</figcaption></figure>';
   const decisions=detail.solution.map(([title,copy])=>'<h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p>').join('');
+  const technical=window.projectTechnical?.[id];
+  const implementation=technical?technical.topics.map(([title,copy])=>'<h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p>').join('')+'<div class="code-sample"><header>'+esc(technical.code.label)+'<button type="button" data-copy-code>复制代码</button></header><pre><code>'+esc(technical.code.text)+'</code></pre></div><h3>阅读核对清单</h3><p>仅在本机记录阅读进度，不代表已执行测试。</p>'+technical.checks.map((copy,i)=>'<label class="checkpoint"><input type="checkbox" data-checkpoint="'+i+'"> '+esc(copy)+'</label>').join(''):'';
   const data=paragraphs(detail.dataNotes)+erDiagram()+(detail.dataObjects?table(['数据对象','业务用途','说明'],detail.dataObjects,'独立业务数据对象'):'');
   const testing='<p>验收应围绕用户能否完成任务，以及异常发生后系统是否仍然可解释。下表把预期行为与当前证据分开列出；建议用例不视为已完成验证，模型效果与工程流程也分别评估。</p>'+table(['验收场景','预期产品行为','当前证据与后续验证'],detail.acceptance,'业务验收与验证状态');
   const readTime=Math.ceil((JSON.stringify(detail).match(/[\u4e00-\u9fff]/g)||[]).length/300);
@@ -59,6 +62,7 @@
     section('scenario',scenario)+
     section('architecture',architecture)+
     section('decisions',decisions)+
+    section('implementation',implementation)+
     section('data-model',data)+
     section('testing',testing)+
     section('delivery',paragraphs(detail.delivery))+
