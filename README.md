@@ -1,31 +1,61 @@
 # yuecong 个人博客
 
-静态 HTML / CSS / JavaScript 网站，部署于 GitHub Pages。
+纯 HTML / CSS / JavaScript 静态网站，可部署到 GitHub Pages。本目录是可上传的优化版本；本地文件更新不等于已经线上发布。
 
-## 项目文章
+## 本次功能
 
-六篇项目的目录信息集中在 `assets/projects-data.js`，详细产品文章位于 `assets/project-details.js`，阅读页为 `project.html?id=项目ID`，由 `assets/story.js` 渲染。银龄守护分为 HarmonyOS 与 Android 两个独立项目，使用不同 ID。修改文章后提交文件到 GitHub，所有访客即可看到。项目列表只读，不读取旧浏览器项目缓存，也没有公开添加入口。
+- 项目共 7 篇，新增「客户协作台 CRM」，中文与英文分别配工作台示意图。原六篇改为工程案例，前置技术栈、三个核心难点、架构、执行流程、ER / 逻辑关联图、关键代码和验证状态。
+- CRM 依据提供的技术说明与界面编写；Mem0、WeKnora、Langfuse 写为后端适配已有、运行联调待确认。示意图不是线上截图，逻辑关联不是物理外键。
+- 项目文章移除重复的阅读核对清单，保留关键实现、代码和测试说明。播放器的播放键固定为圆形，播放模式和歌单放在卡片右上角；手机及较矮窗口默认收起文章侧栏的播放器。
+- 中英文切换覆盖页面、导航、项目与经验文章、图表说明、表格、搜索反馈和播放器；语言选择保存在当前浏览器，站内跳转继续使用所选语言。
+- 通过 HTTP 访问时，站内页面使用无刷新导航，支持浏览器前进、后退及阅读位置恢复；同一播放器持续工作，切换页面不打断音乐。
+- 播放器改为 Chris Zabriskie 的真实氛围音乐：**Cylinder One、Cylinder Four、Cylinder Nine**。支持上一首 / 下一首、播放列表、进度、音量、顺序播放、随机播放和单曲循环。首次播放需主动点击，刷新页面后也需点击继续。
+- 可选择本机音频试听，文件不会上传，刷新后不保留本机音频。收藏、主题与播放器设置只保存在访客自己的浏览器中。
 
-文章包含背景、架构、技术栈、流程图、局部 ER 图、测试依据和复盘。测试代码存在不等于本次执行通过；文中已区分。业务源码、凭证、数据库和客户素材不在网站内。
+音乐来自作者的 [Cylinders 专辑](https://chriszabriskie.com/cylinders/)，按 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 使用，音频未经编辑。请保留播放器中的署名链接，以及 `assets/audio/LICENSE.md` 和三个音频文件；完整音源与授权说明见该文件。
 
-## 文件更新
+## 本地预览
 
-将本目录的内容放在仓库根目录，保留 assets 子目录。新增项目文章时更新 projects-data.js。主题偏好仍保存在访客自己的浏览器中。
+在本目录打开终端，运行：
 
-联系邮箱：435783336@qq.com。留言表单通过邮件客户端发送，不是服务器留言系统。
+```powershell
+python -m http.server 8000
+```
 
-## 经验分享、音乐与阅读交互（2026-09-09）
+然后访问 <http://localhost:8000/>。Windows 如使用 Python Launcher，可运行 `py -m http.server 8000`。请通过本地服务预览，以验证无刷新导航与连续播放；直接双击 HTML 使用的是普通页面跳转。
 
-本次请同步上传所有 HTML 和整个 assets 文件夹，尤其是新增 notes.html、notes-data.js、notes.js、technical-data.js、music.js、interactions.js、enhancements.css。不要只上传 index.html，也不要再套一层 yuecong-blog 文件夹。
+## 部署到 GitHub Pages
 
-经验分享在 assets/notes-data.js 编辑；六个项目的实现细节、示例和阅读核对清单在 assets/technical-data.js 编辑。示例用途已标注，核对清单是本机阅读记录，不代表运行了原项目测试。
+1. 打开仓库 `huangyuecong/huangyuecong.github.io`，将**本文件夹里面的全部内容**上传到仓库根目录，包括全部 HTML、整个 `assets/` 目录和隐藏文件 `.nojekyll`。不要在仓库中再套一层 `yuecong-blog/` 文件夹。
+2. 在仓库 **Settings → Pages** 选择 **Deploy from a branch**，指定上传所在分支（通常为 `main`）和 **/ (root)**，保存配置。
+3. 等 GitHub Pages 构建成功后访问 <https://huangyuecong.github.io/>，检查语言切换、项目阅读、前进后退与音乐。以后修改源文件后，需要再次提交到仓库，线上才会更新。
 
-音乐播放器默认包含两段程序合成轻音乐，点击才播放，支持切歌、音量、进度、单曲循环和列表。平台收听推荐区已按要求移除。合成音乐通过后台 Worker 生成，避免阻塞界面。选歌只在当前浏览器试听本机音频，不上传，刷新后不会保留文件。若需所有访客播放特定歌曲，需另行提供允许公开使用的音频并配置。
+## 编辑位置
 
-收藏、主题、音量和核对清单只保存在访客自己的浏览器，不会修改公开内容。新增大字阅读、专注阅读、文章链接复制、代码复制、ER 图缩放；搜索框可用 / 快捷键聚焦。普通 HTML 页面跳转会暂停音乐，不是跨页无缝播放。
+| 内容 | 源文件 |
+| --- | --- |
+| 首页、关于、项目目录、经验目录、联系、项目阅读外壳 | 根目录的六个 `.html` 文件 |
+| 项目目录与概览 | `assets/projects-data.js` |
+| 项目详细中文文章 | `assets/project-details.js` |
+| 项目详细英文文章 | `assets/project-details.en.js` |
+| 经验分享与技术补充 | `assets/notes-data.js`、`assets/technical-data.js` |
+| 英文项目概览、经验与技术内容 | `assets/content.en.js` |
+| CRM 中英文正文与图 | `assets/crm-data.js`、`assets/crm-data.en.js`、`assets/images/` |
+| 工程摘要、命名与短介绍 | `assets/engineering-data.js` |
+| 架构图与实体关系图 | `assets/architecture-diagrams.js`、`assets/engineering-diagrams.js` |
+| 界面文字与语言切换 | `assets/i18n.js` |
+| 页面布局、颜色、阅读样式 | `assets/style.css`、`assets/enhancements.css` |
+| 播放列表与音频 | `assets/player.js`、`assets/audio/` |
+| 无刷新导航与页面初始化 | `assets/navigation.js`、`assets/app.js` |
 
-## 产品长文更新
+修改文章时同步维护中英文，保留项目 ID、数据字段与数组结构。HarmonyOS 与 Android 银龄守护是两个独立项目。网页只发布介绍内容；业务源码、凭证、数据库和客户素材不应放入站点。
 
-新增文件 `assets/project-details.js` 必须上传。正文包含产品定位、角色、六个功能模块、完整使用场景、系统架构、工程取舍、数据关系、验收表、交付与后续方向。目录支持滚动定位，阅读页支持浏览器打印。Android 的数据关系为逻辑关联，文章已明确区别于物理外键。
+联系邮箱：435783336@qq.com。留言表单会打开访客的邮件客户端，不提供服务器留言存储。项目文章的测试状态依据已有材料说明，本次改写未运行原业务工程测试。
 
-本次静态资源带有版本参数，用于减少更新后的旧缓存。以后更新静态资源时同步更新页面中的版本参数。
+## 写法参考
+
+只参考表达方式，项目实现和验证状态按现有材料编写，未移用他人的项目指标或案例结果。
+
+- [Ben Hoyt · pyast64](https://benhoyt.com/writings/pyast64/)：用一条输入贯穿处理过程，交代约束与测量条件。
+- [Julia Evans · Mess with DNS](https://jvns.ca/blog/2021/12/15/mess-with-dns/)：用实际问题解释技术取舍，让图和验证对应具体机制。
+- [Simon Willison · LLM 0.26](https://simonwillison.net/2025/May/27/llm-tools/)：展示工具调用、失败恢复与版本边界。

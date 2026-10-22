@@ -2,13 +2,15 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="yuecong 的个人博客与项目作品集" />
     <title>yuecong · 个人主页</title>
-    <link rel="stylesheet" href="assets/style.css?v=20260909-3" />
-  <link rel="stylesheet" href="assets/enhancements.css?v=20260909-3">
+    <link rel="stylesheet" href="assets/style.css?v=20261022-6" />
+  <link rel="stylesheet" href="assets/enhancements.css?v=20261022-6">
 </head>
   <body data-page="home">
+<a class="skip-link" href="#mainContent">跳到正文</a>
     <div class="site-shell">
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-inner">
@@ -27,9 +29,9 @@
 
           <div class="social-row" aria-label="社交链接">
             <a href="https://github.com/huangyuecong" target="_blank" rel="noreferrer" aria-label="GitHub">GH</a>
-            <a href="#" aria-label="微博">◎</a>
+
             <a href="mailto:435783336@qq.com" aria-label="邮箱">@</a>
-            <a href="#" aria-label="LinkedIn">in</a>
+
           </div>
 
           <nav class="main-nav" aria-label="主导航">
@@ -39,22 +41,22 @@
             <a href="notes.html" data-nav="notes"><span class="nav-icon">✎</span><span>经验分享</span></a><a href="contact.html" data-nav="contact"><span class="nav-icon">✉</span><span>联系</span></a>
           </nav>
 
-          <div class="sidebar-bottom">
-            <button class="lang-toggle" type="button" data-lang-toggle aria-label="切换英文">EN</button><button class="theme-toggle" type="button" data-theme-toggle aria-label="切换深色模式">
+          <div class="sidebar-bottom"><div class="sidebar-tools">
+            <button class="lang-toggle site-control" type="button" data-lang-toggle aria-label="切换英文">EN</button><button class="theme-toggle site-control" type="button" data-theme-toggle aria-label="切换深色模式">
               <span class="theme-icon">☾</span><span class="theme-label">深色模式</span>
             </button>
-            <p class="sidebar-note">用心生活，用心创造</p>
+            </div><p class="sidebar-note">用心生活，用心创造</p>
           </div>
         </div>
       </aside>
 
       <div class="sidebar-backdrop" data-menu-close></div>
 
-      <main class="main-content">
+      <main class="main-content" id="mainContent">
         <header class="mobile-header">
-          <button class="icon-button" type="button" data-menu-open aria-label="打开菜单">☰</button>
-          <a class="mobile-brand" href="index.html">yuecong</a>
-          <button class="icon-button" type="button" data-theme-toggle aria-label="切换深色模式">☾</button>
+          <button class="icon-button site-control" type="button" data-menu-open aria-label="打开菜单">☰</button>
+          <a class="mobile-brand" href="index.html">yuecong</a><button type="button" class="lang-toggle site-control" data-lang-toggle aria-label="切换英文">EN</button>
+          <button class="icon-button site-control" type="button" data-theme-toggle aria-label="切换深色模式">☾</button>
         </header>
 
         <div class="page-wrap">
@@ -89,7 +91,7 @@
                 <p>我喜欢把零散的灵感整理成清晰的作品，也喜欢在代码、设计和日常生活之间找到平衡。</p>
               </article>
               <div class="stat-stack">
-                <article class="stat-card"><strong>06</strong><span>真实项目介绍</span></article>
+                <article class="stat-card"><strong data-project-count>07</strong><span>真实项目介绍</span></article>
                 <article class="stat-card"><strong>∞</strong><span>持续学习的热情</span></article>
               </div>
             </div>
@@ -117,7 +119,27 @@
         <button class="back-to-top" type="button" data-back-to-top aria-label="返回顶部">↑</button>
       </main>
     </div>
-    <script src="assets/projects-data.js?v=20260909-3" defer></script>
-    <script src="assets/notes-data.js?v=20260909-3" defer></script><script src="assets/music.js?v=20260909-3" defer></script><script src="assets/script.js?v=20260909-3" defer></script>
-  <script src="assets/interactions.js?v=20260909-3" defer></script></body>
+
+
+  <script src="assets/projects-data.js?v=20261022-6" defer></script>
+<script src="assets/project-details.js?v=20261022-6" defer></script>
+<script src="assets/technical-data.js?v=20261022-6" defer></script>
+<script src="assets/notes-data.js?v=20261022-6" defer></script>
+<script src="assets/content.en.js?v=20261022-6" defer></script>
+<script src="assets/project-details.en.js?v=20261022-6" defer></script>
+<script src="assets/crm-data.js?v=20261022-6" defer></script>
+<script src="assets/crm-data.en.js?v=20261022-6" defer></script>
+<script src="assets/engineering-data.js?v=20261022-6" defer></script>
+<script src="assets/engineering-diagrams.js?v=20261022-6" defer></script>
+<script src="assets/architecture-diagrams.js?v=20261022-6" defer></script>
+<script src="assets/core.js?v=20261022-6" defer></script>
+<script src="assets/i18n.js?v=20261022-6" defer></script>
+<script src="assets/story.js?v=20261022-6" defer></script>
+<script src="assets/notes.js?v=20261022-6" defer></script>
+<script src="assets/script.js?v=20261022-6" defer></script>
+<script src="assets/interactions.js?v=20261022-6" defer></script>
+<script src="assets/player.js?v=20261022-6" defer></script>
+<script src="assets/navigation.js?v=20261022-6" defer></script>
+<script src="assets/app.js?v=20261022-6" defer></script>
+</body>
 </html>
