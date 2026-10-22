@@ -1,8 +1,8 @@
-(() => {
+window.Yuecong.renderNotes = function() {
  const root=document.getElementById('notesRoot');if(!root)return;
  const notes=window.fieldNotes||[];
  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
- const reading=n=>Math.max(1,Math.ceil(n.sections.flatMap(s=>s[1]).join('').length/350));
+ const reading=n=>Math.max(1,Math.ceil(window.YuecongI18n.lang==='en'?n.sections.flatMap(s=>s[1]).join(' ').split(/\s+/).length/220:n.sections.flatMap(s=>s[1]).join('').length/350));
  const article=new URLSearchParams(location.search).get('article');
  if(article){
   document.body.classList.add('note-reading');
@@ -16,4 +16,4 @@
   const render=()=>{const keyword=document.getElementById('noteSearch').value.trim().toLowerCase();const matches=notes.filter(n=>[n.title,n.description,...n.tech].join(' ').toLowerCase().includes(keyword));document.getElementById('notesList').innerHTML=matches.map((n,i)=>'<article class="note-card"><span class="note-number">'+String(i+1).padStart(2,'0')+'</span><div><p class="eyebrow">'+esc(n.kicker)+'</p><h3><a href="notes.html?article='+n.id+'">'+esc(n.title)+'</a></h3><p>'+esc(n.description)+'</p><p class="note-readtime">约 '+reading(n)+' 分钟 · 含场景推演与验收方法</p><div class="tag-list">'+n.tech.map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div><div class="project-actions"><a class="small-button primary" href="notes.html?article='+n.id+'">阅读分享 →</a><button type="button" class="save-button" data-bookmark="'+n.id+'" aria-pressed="false">收藏</button></div></div></article>').join('');document.getElementById('notesEmpty').hidden=matches.length>0;document.dispatchEvent(new Event('site:cards-rendered'));};
   document.getElementById('noteSearch').addEventListener('input',render);render();
  }
-})();
+};
