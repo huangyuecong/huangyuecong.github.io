@@ -1,3 +1,4 @@
+window.Yuecong.renderSite = function() {
 /* 项目内容统一来自 projects-data.js，访客只读。 */
 const defaultProjects = window.projectStories || [];
 const themeKey = "yuecong-theme";
@@ -7,13 +8,15 @@ const safeLink = (value) => /^(https?:\/\/|mailto:)/i.test(String(value || "")) 
 const getProjects = () => [...defaultProjects, ...(window.fieldNotes || [])];
 
 function renderProjectCard(project) {
-  if(project.category === "经验分享") return `<article class="project-card editorial-card"><div class="project-info"><p class="eyebrow">工程手记</p><h3><a href="notes.html?article=${encodeURIComponent(project.id)}">${escapeHtml(project.title)}</a></h3><p>${escapeHtml(project.description)}</p><a class="small-button" href="notes.html?article=${encodeURIComponent(project.id)}">阅读分享 →</a></div></article>`;
-  const image = `<div class="project-cover"><span>${escapeHtml(project.kicker)}</span><strong>${escapeHtml(project.title.split("：")[0])}</strong><small>项目笔记 / yuecong</small></div>`;
+  if((window.fieldNotes || []).some(note=>note.id===project.id)) return `<article class="project-card editorial-card"><div class="project-info"><p class="eyebrow">工程手记</p><h3><a href="notes.html?article=${encodeURIComponent(project.id)}">${escapeHtml(project.title)}</a></h3><p>${escapeHtml(project.description)}</p><a class="small-button" href="notes.html?article=${encodeURIComponent(project.id)}">阅读分享 →</a></div></article>`;
+  const image = project.media
+    ? `<img class="crm-cover" src="${escapeHtml(project.media.src)}" alt="${escapeHtml(project.media.alt)}" width="1600" height="1000" loading="lazy">`
+    : `<div class="technical-cover"><span>${escapeHtml(project.kicker)}</span><div class="cover-mechanism">${(project.cardFlow || []).map((step,n)=>`${n?'<i aria-hidden="true">→</i>':''}<b>${escapeHtml(step)}</b>`).join('')}</div></div>`;
   const tags = (project.tech || []).slice(0, 4).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
   const link = project.category === "经验分享" ? `notes.html?article=${encodeURIComponent(project.id)}` : `project.html?id=${encodeURIComponent(project.id)}`;
   return `<article class="project-card">
     <div class="project-thumb thumb-${escapeHtml(project.tone || "sage")}">${image}</div>
-    <div class="project-info"><div class="project-topline"><span class="project-category">${escapeHtml(project.category || "项目")}</span><span class="card-kicker">WORK</span></div>
+    <div class="project-info"><div class="project-topline"><span class="project-category">${escapeHtml(project.category || "项目")}</span><span class="card-kicker">CASE STUDY</span></div>
       <h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.description)}</p><div class="tag-list">${tags}</div>
       <div class="project-actions"><a class="small-button primary" href="${link}">阅读全文 <span>→</span></a><button type="button" class="bookmark-button" data-bookmark="${escapeHtml(project.id)}" aria-pressed="false">收藏</button></div>
     </div></article>`;
@@ -44,14 +47,14 @@ function setupProjectsPage() {
     });
     renderProjectList(grid, result);
   };
-  search.addEventListener("input", refresh);
+  search.addEventListener("input", refresh, {signal: window.Yuecong.pageSignal});
   filters.addEventListener("click", (event) => {
     const button = event.target.closest("[data-filter]");
     if (!button) return;
     activeFilter = button.dataset.filter;
     filters.querySelectorAll(".filter-button").forEach((item) => item.classList.toggle("active", item === button));
     refresh();
-  });
+  }, {signal: window.Yuecong.pageSignal});
   refresh();
 }
 
@@ -69,7 +72,6 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
-function setupLanguage() { const map={'首页':'Home','关于我':'About','项目':'Projects','经验分享':'Notes','联系':'Contact','深色模式':'Dark mode','浅色模式':'Light mode','我的项目':'Projects','经验分享':'Field notes','音乐':'Music','收藏':'Save','阅读全文':'Read more'}; let english=false; const swap=()=>{document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&el.textContent.trim()&&map[el.textContent.trim()])el.textContent=english?map[el.textContent.trim()]:Object.keys(map).find(k=>map[k]===el.textContent.trim())||el.textContent;});document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.textContent=english?'中':'EN');};document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.addEventListener('click',()=>{english=!english;swap();})); }
 
 function setupTheme() {
   const root = document.documentElement;
@@ -77,17 +79,27 @@ function setupTheme() {
   if (saved) root.dataset.theme = saved;
   const update = () => {
     const dark = root.dataset.theme === "dark";
-    document.querySelectorAll("[data-theme-toggle]").forEach((button) => { button.querySelector(".theme-icon")?.replaceChildren(document.createTextNode(dark ? "☀" : "☾")); button.querySelector(".theme-label")?.replaceChildren(document.createTextNode(dark ? "浅色模式" : "深色模式")); });
+    const shape = dark
+      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42m0-14.14-1.42 1.42m-11.3 11.3-1.42 1.42"/>'
+      : '<path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/>';
+    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+      let icon = button.querySelector(".theme-icon");
+      if (!icon) { icon = document.createElement("span"); icon.className = "theme-icon"; button.replaceChildren(icon); }
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = '<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">'+shape+'</svg>';
+      const label = window.YuecongI18n.t(dark ? "浅色模式" : "深色模式");
+      button.setAttribute("aria-label", label);button.setAttribute("title", label);
+    });
   };
   update();
-  document.querySelectorAll("[data-theme-toggle]").forEach((button) => button.addEventListener("click", () => { root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark"; try { localStorage.setItem(themeKey, root.dataset.theme); } catch {} update(); }));
+  document.querySelectorAll("[data-theme-toggle]").forEach((button) => button.addEventListener("click", () => { root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark"; try { localStorage.setItem(themeKey, root.dataset.theme); } catch {} update(); }, {signal: window.Yuecong.pageSignal}));
 }
 
 function setupNavigation() {
   const page = document.body.dataset.page;
   document.querySelector(`[data-nav="${page}"]`)?.setAttribute("aria-current", "page");
-  document.querySelector("[data-menu-open]")?.addEventListener("click", () => document.body.classList.add("sidebar-open"));
-  document.querySelectorAll("[data-menu-close], .main-nav a").forEach((item) => item.addEventListener("click", () => document.body.classList.remove("sidebar-open")));
+  document.querySelector("[data-menu-open]")?.addEventListener("click", () => document.body.classList.add("sidebar-open"), {signal: window.Yuecong.pageSignal});
+  document.querySelectorAll("[data-menu-close], .main-nav a").forEach((item) => item.addEventListener("click", () => document.body.classList.remove("sidebar-open"), {signal: window.Yuecong.pageSignal}));
 }
 
 function setupContact() {
@@ -95,26 +107,28 @@ function setupContact() {
   if (form) form.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(form); const email = form.dataset.contactEmail || "435783336@qq.com";
-    const subject = encodeURIComponent(`来自 ${data.get("name")} 的留言`); const body = encodeURIComponent(`${data.get("message")}\n\n回复邮箱：${data.get("email")}`);
+    const subject = encodeURIComponent(window.YuecongI18n.lang === "en" ? `A note from ${data.get("name")}` : `来自 ${data.get("name")} 的留言`); const body = encodeURIComponent(`${data.get("message")}\n\n${window.YuecongI18n.lang === "en" ? "Reply to" : "回复邮箱"}：${data.get("email")}`);
     document.getElementById("formStatus").textContent = "正在打开邮件客户端……";
     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-  });
-  document.querySelector("[data-copy-link]")?.addEventListener("click", async () => { try { await navigator.clipboard.writeText("https://huangyuecong.github.io"); showToast("网站链接已复制"); } catch { showToast("请手动复制网站地址"); } });
+  }, {signal: window.Yuecong.pageSignal});
+  document.querySelector("[data-copy-link]")?.addEventListener("click", async () => { try { await navigator.clipboard.writeText("https://huangyuecong.github.io"); showToast("网站链接已复制"); } catch { showToast("请手动复制网站地址"); } }, {signal: window.Yuecong.pageSignal});
 }
 
 function setupScrollHelpers() {
   const top = document.querySelector("[data-back-to-top]");
-  window.addEventListener("scroll", () => top?.classList.toggle("visible", window.scrollY > 360), { passive: true });
-  top?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("is-visible")), { threshold: .08 });
-  document.querySelectorAll(".reveal").forEach((item) => observer.observe(item));
+  window.addEventListener("scroll", () => top?.classList.toggle("visible", window.scrollY > 360), { passive: true, signal: window.Yuecong.pageSignal });
+  top?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }), {signal: window.Yuecong.pageSignal});
+  document.querySelectorAll(".reveal").forEach((item) => item.classList.add("is-visible"));
   document.querySelectorAll("[data-year]").forEach((item) => item.textContent = new Date().getFullYear());
 }
 
-setupLanguage();
+
 setupTheme();
 setupNavigation();
 setupFeaturedProjects();
 setupProjectsPage();
 setupContact();
 setupScrollHelpers();
+document.querySelectorAll('[data-project-count]').forEach(el=>el.textContent=String(defaultProjects.length).padStart(2,'0'));
+
+};

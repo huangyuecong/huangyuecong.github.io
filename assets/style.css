@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap');
-
 :root {
   --bg: #f6f2ea;
   --surface: #fffdfa;
@@ -42,8 +40,8 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.7; transition: background .25s ease, color .25s ease; }
-body, button, input, textarea, select { font: inherit; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.7; transition: background .25s ease, color .25s ease; }
+button, input, textarea, select { font: inherit; }
 a { color: inherit; text-decoration: none; }
 button, input, textarea, select { color: inherit; }
 button { cursor: pointer; }

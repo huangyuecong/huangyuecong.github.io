@@ -1,90 +1,44 @@
-/* 长文阅读、结构图与目录导航；无外部图表依赖。 */
-(() => {
-  const root = document.getElementById('storyRoot');
-  if (!root) return;
-  const stories = window.projectStories || [];
-  const id = new URLSearchParams(location.search).get('id');
-  const project = stories.find(item => item.id === id);
-  const detail = window.projectDetails?.[id];
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  if (!project || !detail) {
-    document.title = '未找到项目 · yuecong';
-    root.innerHTML = '<header class="story-header"><h1>这篇项目介绍还没有收录</h1><p>可以从项目目录选择一篇继续阅读。</p><a class="button button-primary" href="projects.html">返回项目目录</a></header>';
-    return;
+/* Engineering case studies. All diagrams are local SVG. */
+window.Yuecong.renderStory = function () {
+  const root=document.getElementById('storyRoot'); if(!root)return;
+  const en=YuecongI18n.lang==='en', L=(zh,enText)=>en?enText:zh;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const stories=window.projectStories||[], id=new URLSearchParams(location.search).get('id');
+  const project=stories.find(p=>p.id===id), detail=window.projectDetails?.[id];
+  const brief=(en?window.projectEngineeringEn:window.projectEngineering)?.[id];
+  if(!project||!detail||!brief){document.title=L('未找到项目','Project not found')+' · yuecong';root.innerHTML='<header class="story-header"><h1>'+L('这篇项目介绍还没有收录','This project is not available yet')+'</h1><a href="projects.html">'+L('返回项目目录','Back to projects')+'</a></header>';return;}
+  document.title=project.title+' · yuecong';document.querySelector('meta[name="description"]').content=detail.summary;
+  const sections=[['overview',L('项目与技术栈','Project and stack')],['decisions',L('三个核心难点','Three engineering problems')],['architecture',L('架构与职责边界','Architecture and boundaries')],['scenario',L('执行流程','Execution flow')],['data-model',L('数据模型与约束','Data model and constraints')],['implementation',L('关键实现','Implementation details')],['testing',L('测试与验证状态','Tests and validation')],['delivery',L('范围与后续工作','Scope and next steps')]];
+  const paragraphs=list=>(list||[]).map(copy=>'<p>'+esc(copy)+'</p>').join('');
+  const section=(key,html)=>{const n=sections.findIndex(s=>s[0]===key);return '<section class="story-section engineering-section" id="'+key+'"><div class="chapter-heading"><span>'+String(n+1).padStart(2,'0')+'</span><h2>'+sections[n][1]+'</h2></div>'+html+'</section>';};
+  const table=(heads,rows,caption)=>'<div class="story-table-wrap"><table class="story-table"><caption>'+esc(caption)+'</caption><thead><tr>'+heads.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+  const ctx=document.createElement('canvas').getContext('2d');
+  function wrap(value,width,size=16){ctx.font=size+'px "Segoe UI", "Microsoft YaHei", sans-serif';const result=[];let line='';for(const token of String(value).match(/[A-Za-z0-9_.\-/]+\s*|./gu)||[]){if(line&&ctx.measureText(line+token).width>width){result.push(line.trim());line=token;}else line+=token;}if(line)result.push(line.trim());return result;}
+  const svgText=(v,x,y,w,size,cls)=>'<text class="'+cls+'" x="'+x+'" y="'+y+'" font-size="'+size+'">'+wrap(v,w,size).map((line,n)=>'<tspan x="'+x+'" dy="'+(n?size*1.55:0)+'">'+esc(line)+'</tspan>').join('')+'</text>';
+  function flowDiagram(){
+    const steps=brief.pipeline,rows=Math.ceil(steps.length/3),positions=[];
+    const boxes=steps.map((step,n)=>{const row=Math.floor(n/3),col=row%2?2-n%3:n%3,x=col*282+8,y=row*132+8;positions.push({x,y});return '<g><rect class="flow-box" x="'+x+'" y="'+y+'" width="248" height="92" rx="9"/><text class="diagram-index" x="'+(x+18)+'" y="'+(y+27)+'">'+String(n+1).padStart(2,'0')+'</text>'+svgText(step.title,x+18,y+56,210,16,'diagram-node-title')+'</g>';}).join('');
+    const arrows=positions.slice(0,-1).map((a,n)=>{const b=positions[n+1],d=a.y===b.y?(b.x>a.x?'M'+(a.x+248)+' '+(a.y+46)+' H'+(b.x-6):'M'+a.x+' '+(a.y+46)+' H'+(b.x+254)):'M'+(a.x+124)+' '+(a.y+92)+' V'+(b.y-6);return '<path class="flow-edge" d="'+d+'" marker-end="url(#flowArrow)"/>';}).join('');
+    return '<figure class="diagram-figure"><div class="diagram-label">EXECUTION FLOW</div><div class="technical-svg-scroll"><svg class="engineering-svg flow-svg" viewBox="0 0 820 '+(rows*132-20)+'" role="img" aria-label="'+L('技术处理流程图','Technical execution flow')+'"><defs><marker id="flowArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8" class="flow-arrow"/></marker></defs>'+arrows+boxes+'</svg></div><figcaption>'+esc(project.flowNote)+'</figcaption></figure><ol class="pipeline-details">'+steps.map(s=>'<li><h3>'+esc(s.title)+'</h3><p>'+esc(s.detail)+'</p></li>').join('')+'</ol>';
   }
-  document.title = project.title + ' · yuecong';
-  document.querySelector('meta[name="description"]').content = detail.summary;
-  const sections = [
-    ['background','业务背景与产品定位'],
-    ['users','谁会使用这个产品'],
-    ['features','核心功能与产品设计'],
-    ['scenario','一个完整的使用场景'],
-    ['architecture','系统架构与技术方案'],
-    ['decisions','关键工程取舍'],
-    ['implementation','实现细节与技术核对'],
-    ['data-model','数据模型与关联关系'],
-    ['testing','测试策略与验收标准'],
-    ['delivery','交付范围与实施边界'],
-    ['value','产品价值与后续方向']
-  ];
-  const paragraphs = list => list.map(text => '<p>'+esc(text)+'</p>').join('');
-  const section = (key, content) => {
-    const index = sections.findIndex(item=>item[0]===key);
-    return '<section class="story-section" id="'+key+'"><div class="chapter-heading"><span>'+String(index+1).padStart(2,'0')+'</span><h2>'+sections[index][1]+'</h2></div>'+content+'</section>';
-  };
-  const table = (heads, rows, caption) => '<div class="story-table-wrap"><table class="story-table"><caption>'+esc(caption)+'</caption><thead><tr>'+heads.map(head=>'<th scope="col">'+esc(head)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(cell=>'<td>'+esc(cell)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
-  function erDiagram() {
-    const height = detail.er.length * 132 + 10;
-    const rows = detail.er.map(([parent,pk,child,fk,label],index)=>{
-      const y = index*132+8;
-      const kind = detail.logicalER ? '业务标识' : 'FK';
-      return '<g transform="translate(0,'+y+')"><rect x="12" y="8" width="248" height="86" rx="12"/><text class="er-title" x="27" y="40">'+esc(parent)+'</text><text x="27" y="70">PK · '+esc(pk)+'</text><path d="M260 51 H446"/><text class="relation-label" text-anchor="middle" x="353" y="34">'+(detail.logicalER?'逻辑关联':'1 : N')+'</text><path d="M432 44 L446 51 L432 58"/><rect x="446" y="8" width="280" height="86" rx="12"/><text class="er-title" x="461" y="40">'+esc(child)+'</text><text x="461" y="70">'+kind+' · '+esc(fk)+'</text><text class="relation-label" x="12" y="117">'+esc(label)+'</text></g>';
-    }).join('');
-    const description=detail.er.map(row=>row[0]+' → '+row[2]+'：'+row[4]).join('；');
-    return '<figure class="diagram-figure"><div class="diagram-label">'+(detail.logicalER?'LOGICAL DATA MODEL':'ENTITY RELATIONSHIPS')+'</div><div class="er-scroll"><svg class="er-svg" viewBox="0 0 740 '+height+'" role="img" aria-labelledby="erTitle erDescription"><title id="erTitle">'+(detail.logicalER?'逻辑数据关联图':'业务主干 ER 关系图')+'</title><desc id="erDescription">'+esc(description)+'</desc>'+rows+'</svg></div><figcaption>'+(detail.logicalER?'连线按业务标识关联，不代表数据库外键约束；具体一对一或一对多关系见每行说明。':'按已核对外键逐条展开关系，重复实体用于避免连线交叉。PK 为父表主键，FK 为子表外键；1:N 表示父记录可以对应多条子记录，可空关系已标注。')+'</figcaption></figure>';
-  }
-  const roles=table(['使用角色','主要任务','产品需要解决的问题'],detail.roles,'角色与任务分工');
-  const modules=detail.modules.map(([title,goal,copy],i)=>'<section class="feature-detail"><div class="feature-top"><span>'+String(i+1).padStart(2,'0')+'</span><h3>'+esc(title)+'</h3></div><p class="feature-goal">'+esc(goal)+'</p><p>'+esc(copy)+'</p></section>').join('');
-  const scenario='<div class="scenario-lead"><h3>'+esc(detail.scenario.title)+'</h3><p>'+esc(detail.scenario.intro)+'</p></div><ol class="journey-steps">'+detail.scenario.steps.map(([title,copy],i)=>'<li><span class="journey-number">'+(i+1)+'</span><div><h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p></div></li>').join('')+'</ol><p class="story-result">'+esc(detail.scenario.result)+'</p><figure class="diagram-figure"><div class="diagram-label">BUSINESS FLOW</div><ol class="flow-diagram" aria-label="业务处理主流程">'+project.flow.map(step=>'<li>'+esc(step)+'</li>').join('')+'</ol><figcaption>'+esc(project.flowNote)+'</figcaption></figure>';
-  const architecture='<div class="tag-list">'+project.tech.map(tag=>'<span class="tag">'+esc(tag)+'</span>').join('')+'</div><figure class="diagram-figure architecture-figure"><div class="diagram-label">SYSTEM RESPONSIBILITIES</div><ol class="architecture-layers" aria-label="系统职责分层图">'+project.architecture.map(([title,copy],i)=>'<li><span class="layer-number">L'+(i+1)+'</span><div><h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p></div></li>').join('')+'</ol><figcaption>按职责展示系统的主要组成与衔接，箭头表达阅读顺序，不表示每项功能都必须依次调用全部模块。</figcaption></figure>';
-  const decisions=detail.solution.map(([title,copy])=>'<h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p>').join('');
+  const stack='<dl class="engineering-stack">'+brief.stack.map(([layer,tech])=>'<div><dt>'+esc(layer)+'</dt><dd>'+esc(tech)+'</dd></div>').join('')+'</dl>';
+  const media=project.media?'<figure class="project-media"><a href="'+esc(project.media.src)+'" target="_blank" rel="noopener"><img src="'+esc(project.media.src)+'" alt="'+esc(project.media.alt)+'" width="1600" height="1000" decoding="async"></a><figcaption>'+esc(project.media.caption)+'</figcaption></figure>':'';
+  const overview='<p class="engineering-focus">'+esc(brief.headline)+'</p>'+paragraphs([brief.context])+stack+media;
+  const challenges='<div class="engineering-problems">'+brief.challenges.map(([problem,approach,boundary],n)=>'<section class="engineering-problem"><div class="problem-index">'+String(n+1).padStart(2,'0')+'</div><div><h3>'+esc(problem)+'</h3><p><strong>'+L('处理方式','Approach')+'</strong>'+esc(approach)+'</p><p class="problem-boundary"><strong>'+L('边界与验证','Boundary and validation')+'</strong>'+esc(boundary)+'</p></div></section>').join('')+'</div>';
+  const decisions='<dl class="architecture-decisions">'+brief.decisions.map(([choice,reason])=>'<div><dt>'+esc(choice)+'</dt><dd>'+esc(reason)+'</dd></div>').join('')+'</dl>';
   const technical=window.projectTechnical?.[id];
-  const implementation=technical?technical.topics.map(([title,copy])=>'<h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p>').join('')+'<div class="code-sample"><header>'+esc(technical.code.label)+'<button type="button" data-copy-code>复制代码</button></header><pre><code>'+esc(technical.code.text)+'</code></pre></div><h3>阅读核对清单</h3><p>仅在本机记录阅读进度，不代表已执行测试。</p>'+technical.checks.map((copy,i)=>'<label class="checkpoint"><input type="checkbox" data-checkpoint="'+i+'"> '+esc(copy)+'</label>').join(''):'';
-  const data=paragraphs(detail.dataNotes)+erDiagram()+(detail.dataObjects?table(['数据对象','业务用途','说明'],detail.dataObjects,'独立业务数据对象'):'');
-  const testing='<p>验收应围绕用户能否完成任务，以及异常发生后系统是否仍然可解释。下表把预期行为与当前证据分开列出；建议用例不视为已完成验证，模型效果与工程流程也分别评估。</p>'+table(['验收场景','预期产品行为','当前证据与后续验证'],detail.acceptance,'业务验收与验证状态');
-  const readTime=Math.ceil((JSON.stringify(detail).match(/[\u4e00-\u9fff]/g)||[]).length/300);
-  const counterpart=id==='silver-guardian'?['elderly-android','查看 Android 版 →']:id==='elderly-android'?['silver-guardian','查看 HarmonyOS 版 →']:null;
+  const implementation=technical?technical.topics.map(([title,copy])=>'<h3>'+esc(title)+'</h3><p>'+esc(copy)+'</p>').join('')+'<div class="code-sample"><header><span>'+esc(technical.code.label)+'</span><button type="button" data-copy-code>'+L('复制代码','Copy code')+'</button></header><pre><code>'+esc(technical.code.text)+'</code></pre></div>':'';
+  const data=window.YuecongDiagrams.er(detail,en)+paragraphs(detail.dataNotes)+(detail.dataObjects?table([L('数据对象','Data object'),L('用途','Purpose'),L('说明','Notes')],detail.dataObjects,L('其他业务对象','Other business objects')):'');
+  const testing='<p class="validation-note">'+esc(brief.validation)+'</p>'+table([L('验证场景','Scenario'),L('预期行为','Expected behavior'),L('当前证据与后续验证','Evidence and remaining validation')],detail.acceptance,L('验收用例与证据状态','Acceptance cases and evidence status'));
+  const context='<details class="project-context"><summary>'+L('补充：使用场景与功能范围','More: usage and feature scope')+'</summary><h3>'+esc(detail.scenario.title)+'</h3><p>'+esc(detail.scenario.intro)+'</p><ol>'+detail.scenario.steps.map(([t,c])=>'<li><strong>'+esc(t)+'</strong> — '+esc(c)+'</li>').join('')+'</ol><h3>'+L('功能范围','Feature scope')+'</h3><ul>'+detail.modules.map(([t,g,c])=>'<li><strong>'+esc(t)+'</strong> — '+esc(c)+'</li>').join('')+'</ul></details>';
+  const evidenceNote=project.evidenceNote||L('依据项目文档、接口、模型与已有测试代码整理；本次改写未运行原工程测试。业务示例不代表客户实测结果。','Based on project documentation, interfaces, models and existing test code. Original project tests were not rerun for this article. Examples are not measured customer results.');
+  const evidence='<details class="evidence-details"><summary>'+L('资料依据','Sources and evidence')+'</summary><p>'+esc(evidenceNote)+'</p><ul class="story-evidence">'+project.evidence.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul></details>';
+  const readTime=Math.max(1,en?Math.ceil((JSON.stringify(brief)+JSON.stringify(detail)+JSON.stringify(technical)).split(/\s+/).length/230):Math.ceil(((JSON.stringify(brief)+JSON.stringify(detail)).match(/[\u4e00-\u9fff]/g)||[]).length/350));
   const next=stories[(stories.indexOf(project)+1)%stories.length];
-  root.innerHTML='<header class="story-header"><p class="eyebrow">'+esc(project.kicker)+' / PRODUCT CASE STUDY</p><h1>'+esc(project.title)+'</h1><p class="story-deck">'+esc(detail.summary)+'</p><div class="story-meta"><span>作者 yuecong</span><span>'+esc(project.status)+'</span><span>约 '+readTime+' 分钟阅读</span></div>'+(counterpart?'<div class="platform-note"><strong>'+esc(project.platform)+' 独立版本</strong><span>功能、技术栈与验证范围分别说明</span><a href="project.html?id='+counterpart[0]+'">'+counterpart[1]+'</a></div>':'')+'</header><div class="story-layout"><article class="story-body">'+
-    section('background',paragraphs(detail.positioning))+
-    section('users',roles)+
-    section('features',modules)+
-    section('scenario',scenario)+
-    section('architecture',architecture)+
-    section('decisions',decisions)+
-    section('implementation',implementation)+
-    section('data-model',data)+
-    section('testing',testing)+
-    section('delivery',paragraphs(detail.delivery))+
-    section('value',paragraphs(detail.value))+
-    '<details class="story-section evidence-details"><summary>实现依据与阅读说明</summary><p>依据项目文档、接口、数据模型和已有测试整理。业务示例用于解释产品，不是客户实测记录；本次文章改写未执行原项目、操作业务数据或重新运行原工程测试。</p><ul class="story-evidence">'+project.evidence.map(file=>'<li>'+esc(file)+'</li>').join('')+'</ul></details></article><nav class="story-toc" aria-label="文章目录"><strong>阅读目录</strong><div class="reading-track" aria-hidden="true"><i id="readingProgress"></i></div>'+sections.map(([key,label],index)=>'<a href="#'+key+'"><span>'+String(index+1).padStart(2,'0')+'</span>'+label+'</a>').join('')+'<button class="story-print" type="button" id="printStory">打印 / 保存 PDF</button></nav></div><nav class="story-next" aria-label="更多文章"><a class="button button-ghost" href="projects.html">← 所有项目</a><a class="button button-primary" href="project.html?id='+encodeURIComponent(next.id)+'">下一篇：'+esc(next.title.split('：')[0])+' →</a></nav>';
-  document.getElementById('printStory').addEventListener('click',()=>window.print());
-  const anchors=[...document.querySelectorAll('.story-toc a')];
-  const chapters=sections.map(([key])=>document.getElementById(key));
-  let scheduled=false;
-  function updateReading() {
-    scheduled=false;
-    const denominator=document.documentElement.scrollHeight-window.innerHeight;
-    document.getElementById('readingProgress').style.width=Math.min(100,Math.max(0,denominator?window.scrollY/denominator*100:0))+'%';
-    let active=chapters[0].id;
-    for(const chapter of chapters) if(chapter.getBoundingClientRect().top<=170) active=chapter.id;
-    anchors.forEach(anchor=>{
-      const current=anchor.getAttribute('href')==='#'+active;
-      anchor.classList.toggle('active',current);
-      if(current) anchor.setAttribute('aria-current','location'); else anchor.removeAttribute('aria-current');
-    });
-  }
-  window.addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateReading);}},{passive:true});
-  updateReading();
-  if(location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
-})();
+  const counterpart=id==='silver-guardian'?['elderly-android',L('查看 Android 版 →','View Android edition →')]:id==='elderly-android'?['silver-guardian',L('查看 HarmonyOS 版 →','View HarmonyOS edition →')]:null;
+  root.innerHTML='<header class="story-header engineering-header"><p class="eyebrow">'+esc(project.kicker)+' / ENGINEERING NOTES</p><h1>'+esc(project.title)+'</h1><p class="story-deck">'+esc(detail.summary)+'</p><div class="story-meta"><span>yuecong</span><span>'+esc(project.status)+'</span><span>'+L('约 '+readTime+' 分钟阅读',readTime+' min read')+'</span></div>'+(counterpart?'<a class="platform-crosslink" href="project.html?id='+counterpart[0]+'">'+counterpart[1]+'</a>':'')+'</header><div class="story-layout engineering-layout"><article class="story-body">'+section('overview',overview)+section('decisions',challenges)+section('architecture',window.YuecongArchitecture.render(id,en)+decisions)+section('scenario',flowDiagram())+section('data-model',data)+section('implementation',implementation)+section('testing',testing)+section('delivery',paragraphs(detail.delivery)+context+evidence)+'</article><nav class="story-toc" aria-label="'+L('文章目录','Article contents')+'"><strong>'+L('阅读目录','Contents')+'</strong><div class="reading-track" aria-hidden="true"><i id="readingProgress"></i></div>'+sections.map(([key,label],n)=>'<a href="#'+key+'"><span>'+String(n+1).padStart(2,'0')+'</span>'+esc(label)+'</a>').join('')+'<button class="story-print" type="button" id="printStory">'+L('打印 / 保存 PDF','Print / Save PDF')+'</button></nav></div><nav class="story-next" aria-label="'+L('更多文章','More articles')+'"><a class="button button-ghost" href="projects.html">'+L('← 所有项目','← All projects')+'</a><a class="button button-primary" href="project.html?id='+encodeURIComponent(next.id)+'">'+L('下一篇：','Next: ')+esc(next.title.split(/：|: /)[0])+' →</a></nav>';
+  document.getElementById('printStory').addEventListener('click',()=>window.print(),{signal:window.Yuecong.pageSignal});
+  const anchors=[...document.querySelectorAll('.story-toc a')],chapters=sections.map(([key])=>document.getElementById(key));let scheduled=false;
+  function updateReading(){scheduled=false;const progress=document.getElementById('readingProgress');if(!progress)return;const denominator=document.documentElement.scrollHeight-innerHeight;progress.style.width=Math.min(100,Math.max(0,denominator?scrollY/denominator*100:0))+'%';let active=chapters[0].id;for(const chapter of chapters)if(chapter.getBoundingClientRect().top<=170)active=chapter.id;anchors.forEach(a=>{const current=a.getAttribute('href')==='#'+active;a.classList.toggle('active',current);if(current)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}
+  window.addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateReading);}},{passive:true,signal:window.Yuecong.pageSignal});updateReading();if(location.hash)document.getElementById(location.hash.slice(1))?.scrollIntoView();
+};
